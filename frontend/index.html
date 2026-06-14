@@ -106,9 +106,14 @@
 
     <div class="sb-footer">
       <div class="sb-user" id="sb-user" onclick="App.go(App._user.role==='Member'?'member-profile':'admin-profile')"></div>
-      <button class="btn-logout" onclick="Login.logout()">
-        <span>⬅</span><span>Sign Out</span>
-      </button>
+      <div class="sb-footer-buttons">
+        <button class="btn-settings" id="sb-settings-btn" onclick="App.go('admin-settings')" style="display:none" title="Settings">
+          <span>⚙️</span>
+        </button>
+        <button class="btn-logout" onclick="Login.logout()">
+          <span>⬅</span><span>Sign Out</span>
+        </button>
+      </div>
     </div>
 
     <button class="sb-toggle" id="sb-toggle" onclick="Sidebar.toggle()" title="Collapse">

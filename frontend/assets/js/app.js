@@ -226,6 +226,10 @@ const App = {
         <div class="sb-uname">${user.username||"User"}</div>
         <div class="sb-urole">${user.role}${user.branchId&&user.branchId!=="ALL"?" · "+user.branchId:""}</div>
       </div>`;
+
+    // Settings button - show for Admins only
+    const sb = document.getElementById("sb-settings-btn");
+    if (sb) sb.style.display = isAdmin ? "flex" : "none";
   },
 
   _buildTopbar(user) {
