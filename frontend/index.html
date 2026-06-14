@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#1a7a4a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DG Coop">
+  <meta name="description" content="Divine Grace Cooperative Multipurpose Society — Member & Admin Portal">
+  <title>Divine Grace Cooperative</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="icon" type="image/png" href="assets/icons/icon-96.png">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════ LOGIN ═════════════════════════ -->
+<div id="login-page" style="display:none">
+  <div class="login-visual">
+    <div class="login-visual-inner">
+      <div class="login-logo">🌿</div>
+      <h1 class="login-org">Divine Grace<br>Cooperative Society</h1>
+      <p class="login-tagline">REG NO: LSCS 18377 &nbsp;·&nbsp; Empowering Members Since 2020</p>
+      <div class="login-stats">
+        <div class="login-stat">
+          <span class="num" id="stat-members">—</span>
+          <span class="lbl">Members</span>
+        </div>
+        <div class="login-stat">
+          <span class="num" id="stat-branches">—</span>
+          <span class="lbl">Branches</span>
+        </div>
+        <div class="login-stat">
+          <span class="num" id="stat-savings">—</span>
+          <span class="lbl">Total Savings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-form-wrap">
+    <div class="login-theme-row">
+      <button class="theme-btn" onclick="Theme.toggle()" title="Toggle dark/light">🌙</button>
+    </div>
+    <div class="login-form-header">
+      <h2>Welcome back</h2>
+      <p>Sign in to your cooperative portal</p>
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" id="tab-admin"  onclick="Login.setRole('admin')">🔐 Admin / Manager</button>
+      <button class="role-tab"        id="tab-member" onclick="Login.setRole('member')">👤 Member</button>
+    </div>
+
+    <div class="login-error" id="login-error"></div>
+
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-control" id="inp-username" type="text"
+        placeholder="Enter your username" autocomplete="username"
+        onkeydown="if(event.key==='Enter')Login.submit()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <input class="form-control" id="inp-password" type="password"
+          placeholder="Enter your password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')Login.submit()"
+          style="padding-right:2.8rem">
+        <button class="input-icon-right" id="pwd-eye" onclick="Login.togglePwd()" type="button">👁</button>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full btn-xl" id="login-btn"
+      onclick="Login.submit()" style="margin-top:.25rem">
+      Sign In →
+    </button>
+
+    <p class="text-center text-muted text-xs mt-2">
+      Default admin: <code style="background:var(--bg);padding:.1rem .35rem;border-radius:4px;font-size:.75rem">admin</code>
+      &nbsp;/&nbsp;
+      <code style="background:var(--bg);padding:.1rem .35rem;border-radius:4px;font-size:.75rem">Admin@DGCoop2024</code>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════ SIDEBAR OVERLAY ═══════════════════ -->
+<div class="sb-overlay" id="sb-overlay" onclick="Sidebar.close()"></div>
+
+<!-- ═══════════════════════════ APP SHELL ═══════════════════════ -->
+<div id="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">🌿</div>
+      <div class="sb-brand">
+        <div class="sb-name">DG Coop</div>
+        <div class="sb-reg">LSCS 18377</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav" id="sb-nav"></nav>
+
+    <div class="sb-footer">
+      <div class="sb-user" id="sb-user" onclick="App.go(App._user.role==='Member'?'member-profile':'admin-profile')"></div>
+      <button class="btn-logout" onclick="Login.logout()">
+        <span>⬅</span><span>Sign Out</span>
+      </button>
+    </div>
+
+    <button class="sb-toggle" id="sb-toggle" onclick="Sidebar.toggle()" title="Collapse">
+      <span class="arrow">‹</span>
+    </button>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content" id="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-hamburger" onclick="Sidebar.open()">☰</button>
+      <span class="topbar-title" id="topbar-title">Dashboard</span>
+      <div class="topbar-right">
+        <div class="status-pill offline-pill" id="offline-pill">📡 Offline</div>
+        <div class="status-pill sync-pill"    id="sync-pill" onclick="Sync.run()">
+          🔄 <span id="sync-count">0</span> queued
+        </div>
+        <button class="theme-btn" onclick="Theme.toggle()" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- PAGE -->
+    <main class="page-content" id="page-content"></main>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+</div>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- SCRIPTS -->
+<script src="assets/js/db.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/modals.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// BOOTSTRAP — runs on page load
+// ═══════════════════════════════════════════════════════════
+
+// ── Theme ─────────────────────────────────────────────────
+const Theme = {
+  get() {
+    return localStorage.getItem("DG_THEME") ||
+      (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  },
+  apply(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    localStorage.setItem("DG_THEME", t);
+    const icon = t === "dark" ? "☀️" : "🌙";
+    document.querySelectorAll(".theme-btn").forEach(b => b.textContent = icon);
+    document.querySelector("meta[name=theme-color]")
+      ?.setAttribute("content", t === "dark" ? "#111827" : "#1a7a4a");
+  },
+  toggle() {
+    const next = Theme.get() === "dark" ? "light" : "dark";
+    Theme.apply(next);
+    UI.toast(next === "dark" ? "Dark mode 🌙" : "Light mode ☀️", "info", 2000);
+  }
+};
+Theme.apply(Theme.get());
+
+// ── Sidebar ───────────────────────────────────────────────
+let _sbCollapsed = localStorage.getItem("DG_SB") === "1";
+
+const Sidebar = {
+  apply() {
+    const sb = document.getElementById("sidebar");
+    const mc = document.getElementById("main-content");
+    if (!sb) return;
+    sb.classList.toggle("collapsed", _sbCollapsed);
+    mc.classList.toggle("sidebar-collapsed", _sbCollapsed);
+  },
+  toggle() {
+    _sbCollapsed = !_sbCollapsed;
+    localStorage.setItem("DG_SB", _sbCollapsed ? "1" : "");
+    Sidebar.apply();
+  },
+  open() {
+    document.getElementById("sidebar")?.classList.add("mob-open");
+    document.getElementById("sb-overlay")?.classList.add("show");
+    document.body.style.overflow = "hidden";
+  },
+  close() {
+    document.getElementById("sidebar")?.classList.remove("mob-open");
+    document.getElementById("sb-overlay")?.classList.remove("show");
+    document.body.style.overflow = "";
+  }
+};
+
+// ── Login ─────────────────────────────────────────────────
+const Login = {
+  _role: "admin",
+  setRole(r) {
+    this._role = r;
+    document.getElementById("tab-admin") .classList.toggle("active", r === "admin");
+    document.getElementById("tab-member").classList.toggle("active", r === "member");
+    document.getElementById("inp-username").placeholder = r === "admin" ? "admin" : "grace.odunuga";
+    document.getElementById("inp-username").focus();
+  },
+  togglePwd() {
+    const inp = document.getElementById("inp-password");
+    const eye = document.getElementById("pwd-eye");
+    inp.type = inp.type === "password" ? "text" : "password";
+    eye.textContent = inp.type === "password" ? "👁" : "🙈";
+  },
+  async submit() {
+    const u   = document.getElementById("inp-username").value.trim();
+    const p   = document.getElementById("inp-password").value;
+    const err = document.getElementById("login-error");
+    const btn = document.getElementById("login-btn");
+
+    err.style.display = "none";
+    if (!u || !p) {
+      err.textContent = "⚠️ Please enter username and password.";
+      err.style.display = "block"; return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner spinner-sm" style="border-top-color:#fff"></span> Signing in…`;
+
+    const res = await API.auth.login(u, p);
+    btn.disabled = false; btn.innerHTML = "Sign In →";
+
+    if (res?.success) {
+      Auth.save(res.data);
+      App.boot(res.data);
+    } else {
+      err.textContent = "❌ " + (res?.message || "Login failed. Please try again.");
+      err.style.display = "block";
+      document.getElementById("inp-password").value = "";
+      document.getElementById("inp-password").focus();
+      // Shake
+      const fw = document.querySelector(".login-form-wrap");
+      fw.style.transition = "transform .4s cubic-bezier(.36,.07,.19,.97)";
+      fw.style.transform  = "translateX(-8px)";
+      setTimeout(() => { fw.style.transform = ""; }, 400);
+    }
+  },
+  async logout() {
+    if (!confirm("Sign out of Divine Grace Coop?")) return;
+    await API.auth.logout();
+    Auth.clear();
+    await DB.clearAll();
+    document.getElementById("app-shell").classList.remove("visible");
+    document.getElementById("app-shell").style.display = "none";
+    document.getElementById("login-page").style.display = "flex";
+    document.getElementById("inp-username").value = "";
+    document.getElementById("inp-password").value = "";
+    UI.toast("Signed out.", "info", 2000);
+    loadStats();
+  }
+};
+
+// ── Online/Offline ────────────────────────────────────────
+const Sync = {
+  async check() {
+    const q     = await DB.getPendingQueue();
+    const pill  = document.getElementById("sync-pill");
+    const count = document.getElementById("sync-count");
+    if (q.length > 0) {
+      pill.classList.add("show");
+      count.textContent = q.length;
+    } else {
+      pill.classList.remove("show");
+    }
+  },
+  async run() {
+    if (!navigator.onLine) { UI.toast("Still offline — will sync when reconnected.", "warning"); return; }
+    const q = await DB.getPendingQueue();
+    if (!q.length) { UI.toast("Nothing to sync.", "info"); return; }
+    UI.toast(`Syncing ${q.length} action(s)…`, "info");
+    const res = await DB.syncQueue();
+    if (res.synced > 0) { UI.toast(`${res.synced} action(s) synced ✅`, "success"); Sync.check(); }
+  }
+};
+
+function initNetwork() {
+  const pill = document.getElementById("offline-pill");
+  const upd  = () => {
+    pill.classList.toggle("show", !navigator.onLine);
+    if (navigator.onLine) Sync.run();
+  };
+  window.addEventListener("online",  upd);
+  window.addEventListener("offline", upd);
+  upd();
+}
+
+// ── Stats on login page ───────────────────────────────────
+async function loadStats() {
+  try {
+    const res = await API.reports.adminDashboard();
+    if (!res?.success) return;
+    const d = res.data;
+    const animate = (id, target) => {
+      const el = document.getElementById(id); if (!el) return;
+      let n = 0; const s = Math.max(1, Math.floor(target/40));
+      const t = setInterval(() => { n = Math.min(n+s,target); el.textContent = n; if(n>=target)clearInterval(t); }, 30);
+    };
+    animate("stat-members",  d.totalMembers||0);
+    animate("stat-branches", (d.branchStats||[]).length||0);
+    const v = d.totalSavings||0;
+    document.getElementById("stat-savings").textContent =
+      v>=1e6 ? "₦"+(v/1e6).toFixed(1)+"M" : v>=1e3 ? "₦"+(v/1e3).toFixed(0)+"K" : "₦"+v;
+  } catch {}
+}
+
+// ── Service Worker ────────────────────────────────────────
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+
+// ── Boot ──────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  Sidebar.apply();
+  initNetwork();
+  Sync.check();
+  const user = Auth.getUser();
+  if (user?.token) {
+    App.boot(user);
+  } else {
+    document.getElementById("login-page").style.display = "flex";
+    loadStats();
+  }
+});
+</script>
+</body>
+</html>
