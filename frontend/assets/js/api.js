@@ -29,8 +29,19 @@ const API = (() => {
     const body = { action, token: token || "", data, params };
 
     try {
-      // Use Netlify proxy by default, fallback to direct URL if available
-      const endpoint = url || "/.netlify/functions/api";
+      // Try Vercel first (/api/proxy), then Netlify (/.netlify/functions/api)
+      let endpoint = "/.netlify/functions/api";
+      
+      // Check if we're on Vercel by looking for vercel domain or /api prefix
+      if (window.location.hostname.includes("vercel")) {
+        endpoint = "/api/proxy";
+      }
+      
+      // If a custom URL is set, use it directly
+      if (url) {
+        endpoint = url;
+      }
+
       const res  = await fetch(endpoint, {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
