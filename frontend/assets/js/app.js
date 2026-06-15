@@ -632,6 +632,7 @@ Pages["admin-settings"] = async function() {
   $("page-content").innerHTML = `
     <div class="page-header">
       <div class="page-header-left"><h1>Settings</h1><p>Configure all cooperative rules and rates</p></div>
+      <button class="btn btn-secondary" onclick="App.go('admin-dashboard')" title="Back to Dashboard">← Dashboard</button>
     </div>
     <div class="grid-2 gap-2">
       <div class="card">
