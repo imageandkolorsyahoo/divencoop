@@ -536,25 +536,37 @@ Modals.saveLoginBackendUrl = function() {
     });
   }, 500);
 };
-    </div>
-    <div id="cm-preview"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Amount Paid (₦)</label><input class="form-control" id="cm-paid" type="number" value="0"></div>
-      <div class="form-group"><label class="form-label">Date Issued</label><input class="form-control" id="cm-date" type="date" value="${new Date().toISOString().split("T")[0]}"></div>
-    </div>`,
-    `${cancel("mod-commod")}<button class="btn btn-primary" onclick="Modals.submitCommodity()">Add</button>`);
 
-  window.cmPreview = () => {
-    const qty=Number(document.getElementById("cm-qty")?.value)||0;
-    const price=Number(document.getElementById("cm-price")?.value)||0;
-    const total=qty*price; const el=document.getElementById("cm-preview");
-    if(el&&total>0) el.innerHTML=`<div style="background:var(--coop-gold-lt);border:1px solid rgba(245,158,11,.25);border-radius:var(--r-md);padding:.65rem;margin-bottom:.65rem;font-size:.82rem"><div class="flex-between"><span class="font-bold">Total Value</span><span class="font-bold" style="color:var(--coop-gold)">${UI.fmt.money(total)}</span></div></div>`;
-  };
+// ── Add Commodity ─────────────────────────────────────────
+Modals.addCommodity = async function() {
+  const brRes = await API.branches.getAll();
+  const bOpts = (brRes?.data||[]).map(b=>`<option value="${b["BranchID"]}">${b["Branch Name"]}</option>`).join("");
+  buildModal("mod-commod","📦 Add Commodity",`
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Member ID *</label>
+        <input class="form-control" id="cm-mid" placeholder="MEM001" oninput="ctLookup(this.value)">
+        <div id="ct-preview"></div></div>
+      <div class="form-group"><label class="form-label">Branch *</label>
+        <select class="form-control" id="cm-br"><option value="">Select…</option>${bOpts}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Item Description *</label><input class="form-control" id="cm-item" placeholder="Rice (50kg bag)"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantity *</label><input class="form-control" id="cm-qty" type="number" value="1" min="1" oninput="cmPreview()"></div>
+      <div class="form-group"><label class="form-label">Unit Price (₦) *</label><input class="form-control" id="cm-price" type="number" placeholder="0.00" oninput="cmPreview()"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Remark</label><input class="form-control" id="cm-rem" placeholder="Optional note"></div>
+    <div id="cm-preview" class="warning-box" style="display:none;margin-bottom:1rem"></div>`,
+    `${cancel("mod-commod")}<button class="btn btn-primary" onclick="Modals.submitCommodity()">Add Item</button>`);
 };
+
 Modals.submitCommodity = async function() {
-  const mid=document.getElementById("cm-mid")?.value?.trim(), br=document.getElementById("cm-br")?.value, item=document.getElementById("cm-item")?.value?.trim();
-  if(!mid||!br||!item){UI.toast("Fill required fields","warning");return;}
-  const res=await API.commodities.add({ memberId:mid,branchId:br,item,quantity:Number(document.getElementById("cm-qty")?.value),unitPrice:Number(document.getElementById("cm-price")?.value),amountPaid:Number(document.getElementById("cm-paid")?.value)||0,dateIssued:document.getElementById("cm-date")?.value });
-  if(res?.success){UI.toast(`Added — Total: ${UI.fmt.money(res.data?.totalValue||0)} ✅`,"success");UI.modal("mod-commod").close();Pages["admin-commodities"]();}
+  const mid = document.getElementById("cm-mid")?.value?.trim();
+  const br = document.getElementById("cm-br")?.value;
+  const item = document.getElementById("cm-item")?.value?.trim();
+  const qty = parseInt(document.getElementById("cm-qty")?.value);
+  const price = parseFloat(document.getElementById("cm-price")?.value);
+  if (!mid || !item || !qty || !price || !br) { UI.toast("All * fields required","warning"); return; }
+  const res = await API.commodities.add({memberId:mid, branchId:br, item, qty, price, remark:document.getElementById("cm-rem")?.value?.trim()});
+  if (res?.success) { UI.toast("Commodity added ✅","success"); UI.modal("mod-commod").close(); if(App.cur()==="admin-commodities")Pages["admin-commodities"](); }
   else UI.toast(res?.message||"Failed","error");
 };
