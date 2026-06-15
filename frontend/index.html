@@ -43,7 +43,7 @@
   <div class="login-form-wrap">
     <div class="login-theme-row">
       <button class="theme-btn" onclick="Theme.toggle()" title="Toggle dark/light">🌙</button>
-      <button class="settings-btn-login" onclick="Modals.loginSettings()" title="Backend Settings">⚙️</button>
+      <button class="settings-btn-login" onclick="if(typeof Modals!=='undefined')Modals.loginSettings();else alert('Loading...')" title="Backend Settings">⚙️</button>
     </div>
     <div class="login-form-header">
       <h2>Welcome back</h2>
