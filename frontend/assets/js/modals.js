@@ -462,6 +462,81 @@ Modals.addCommodity = async function() {
       <div class="form-group"><label class="form-label">Quantity *</label><input class="form-control" id="cm-qty" type="number" value="1" min="1" oninput="cmPreview()"></div>
       <div class="form-group"><label class="form-label">Unit Price (₦) *</label><input class="form-control" id="cm-price" type="number" placeholder="0.00" oninput="cmPreview()"></div>
     </div>
+    <div class="form-group"><label class="form-label">Remark</label><input class="form-control" id="cm-rem" placeholder="Optional note"></div>
+    <div id="cm-preview" class="warning-box" style="display:none;margin-bottom:1rem"></div>`,
+    `${cancel("mod-commod")}<button class="btn btn-primary" onclick="Modals.submitCommodity()">Add Item</button>`);
+};
+
+Modals.submitCommodity = async function() {
+  const mid = document.getElementById("cm-mid")?.value?.trim();
+  const br = document.getElementById("cm-br")?.value;
+  const item = document.getElementById("cm-item")?.value?.trim();
+  const qty = parseInt(document.getElementById("cm-qty")?.value);
+  const price = parseFloat(document.getElementById("cm-price")?.value);
+  if (!mid || !item || !qty || !price || !br) { UI.toast("All * fields required","warning"); return; }
+  const res = await API.commodities.add({memberId:mid, branchId:br, item, qty, price, remark:document.getElementById("cm-rem")?.value?.trim()});
+  if (res?.success) { UI.toast("Commodity added ✅","success"); UI.modal("mod-commod").close(); if(App.cur()==="admin-commodities")Pages["admin-commodities"](); }
+  else UI.toast(res?.message||"Failed","error");
+};
+
+// ── Login Settings Modal ──────────────────────────────────
+Modals.loginSettings = function() {
+  buildModal("login-settings-modal","⚙️ Backend Configuration",`
+    <div class="form-group">
+      <label class="form-label">Google Apps Script URL</label>
+      <input class="form-control" id="login-backend-url" value="${API.getUrlValue()}"
+        placeholder="https://script.google.com/macros/s/…/exec">
+      <div class="form-hint">Paste your deployed Google Apps Script Web App URL</div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md);padding:1rem;margin-bottom:1rem;font-size:.85rem">
+      <div class="flex-between mb-1"><span class="font-bold">Backend Status</span><span id="backend-status-badge" class="badge b-red">Checking…</span></div>
+      <div id="backend-status-text" style="color:var(--text4);margin-top:.5rem">Testing connection…</div>
+    </div>`,
+    `<button class="btn btn-secondary" onclick="UI.modal('login-settings-modal').close()">Close</button><button class="btn btn-primary" onclick="Modals.saveLoginBackendUrl()">💾 Save & Test</button>`);
+  
+  // Test connection
+  API.test().then(res => {
+    const badge = document.getElementById("backend-status-badge");
+    const text = document.getElementById("backend-status-text");
+    if (res?.success) {
+      badge.className = "badge b-green";
+      badge.textContent = "✅ Connected";
+      text.textContent = "Backend is reachable and responding correctly.";
+    } else {
+      badge.className = "badge b-red";
+      badge.textContent = "❌ Disconnected";
+      text.textContent = "Backend URL not set or unreachable. Please enter the URL and try again.";
+    }
+  }).catch(() => {
+    const badge = document.getElementById("backend-status-badge");
+    const text = document.getElementById("backend-status-text");
+    badge.className = "badge b-red";
+    badge.textContent = "❌ Error";
+    text.textContent = "Could not reach backend. Check URL and try again.";
+  });
+};
+
+Modals.saveLoginBackendUrl = function() {
+  const url = document.getElementById("login-backend-url")?.value?.trim();
+  if (!url) {
+    UI.toast("Please paste the Apps Script URL","warning");
+    return;
+  }
+  API.setUrl(url);
+  UI.toast("Backend URL saved ✅","success");
+  setTimeout(() => {
+    UI.modal("login-settings-modal").close();
+    // Test again
+    API.test().then(res => {
+      if (res?.success) {
+        UI.toast("✅ Connected to backend!","success");
+      } else {
+        UI.toast("⚠️ URL saved but not responding. Please verify.","warning");
+      }
+    });
+  }, 500);
+};
+    </div>
     <div id="cm-preview"></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Amount Paid (₦)</label><input class="form-control" id="cm-paid" type="number" value="0"></div>

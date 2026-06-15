@@ -140,6 +140,11 @@ const API = (() => {
     push: queue => call("SYNC_OFFLINE_QUEUE", { queue })
   };
 
+  // Test backend connection
+  function test() {
+    return call("GET_SETTINGS").catch(() => ({ success: false }));
+  }
+
   return { auth, settings, branches, members, transactions, loans,
-           commodities, reports, sync, setUrl, hasUrl, getUrlValue };
+           commodities, reports, sync, setUrl, hasUrl, getUrlValue, test };
 })();
